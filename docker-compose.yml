@@ -1,0 +1,113 @@
+services:
+
+#############################################
+# Managers
+#############################################
+  planmanager:
+    container_name: manager.plan
+    build:
+      context: ./managers/manager.plan
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"   # ApiGateway port
+      - "9229:9229"   # debug port
+    environment:
+      - AWS_ACCESS_KEY_ID=LOCALDEV_ACCESS_KEY
+      - AWS_SECRET_ACCESS_KEY=LOCALDEV_SECRET_KEY
+      - AWS_DEFAULT_REGION=us-east-1
+      - PLANACCESSOR_ENDPOINT=http://planaccessor
+      - PLANACCESSOR_NAME=planaccessor-dev-planaccessor
+      - HTTP_PORT=3000
+    volumes:
+      - ./managers/manager.plan:/app
+      - ./managers/manager.plan/.env.dev:/app/.env
+      - planmanager_nodemodules:/app/node_modules
+    networks:
+      - localstack_network
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:3000/warmup"]
+    #   interval: 1m
+    #   timeout: 10s
+    #   retries: 3
+    #   start_period: 1m
+    # depends_on:
+    #   - localstack
+
+#############################################
+# Accessors
+#############################################
+  planaccessor:
+    container_name: accessor.plan
+    build:
+      context: ./accessors/accessor.plan
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3000" # API gateway ONLY for debug (and healthcheck)
+      - "9230:9229" # debug port
+    environment:
+      - AWS_ACCESS_KEY_ID=LOCALDEV_ACCESS_KEY
+      - AWS_SECRET_ACCESS_KEY=LOCALDEV_SECRET_KEY
+      - AWS_DEFAULT_REGION=us-east-1
+      - HTTP_PORT=3000
+      - LAMBDA_PORT=80
+    volumes:
+      - ./accessors/accessor.plan:/app
+      - ./accessors/accessor.plan/.env.dev:/app/.env
+      - planacccessor_nodemodules:/app/node_modules
+    networks:
+      - localstack_network
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:3000/warmup"]
+    #   interval: 1m
+    #   timeout: 10s
+    #   retries: 3
+    #   start_period: 1m
+    # depends_on:
+    #   - localstack
+
+#############################################
+# Localstack (dynamoDb, sqs, dynamoDbViewer)
+#############################################
+  localstack:
+    container_name: "${LOCALSTACK_DOCKER_NAME-localstack_main}"
+    image: localstack/localstack:latest
+    ports:
+      - "127.0.0.1:4566:4566"
+      - "127.0.0.1:4510-4559:4510-4559"
+    environment:
+      - DEBUG=1
+      - PERSISTENCE=1 # for saving states after shutdown
+      - PERSIST_ALL=true
+      - LS_LOG=debug
+      - AWS_DEFAULT_REGION=us-east-1
+      # - SERVICES=dynamodb,lambda,s3,cloudformation,sqs,apigateway
+      - SERVICES=lambda,s3,cloudformation,sqs,apigateway
+    volumes:
+      - "${LOCALSTACK_VOLUME_DIR:-../infra/local-env/localstack_volume/var}:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./initial-db.sh:/etc/localstack/init/ready.d/init-aws.sh"
+
+    networks:
+    - localstack_network
+
+  dynamodbviewer:
+    container_name: dynamo-db-admin
+    image: aaronshaf/dynamodb-admin
+    ports:
+    - 8001:8001
+    environment:
+    - DYNAMO_ENDPOINT=http://localstack:4566
+    networks:
+    - localstack_network
+
+networks:
+  localstack_network:
+    driver: bridge
+
+volumes:
+  planmanager_nodemodules:
+  planacccessor_nodemodules:
+
+
+
+

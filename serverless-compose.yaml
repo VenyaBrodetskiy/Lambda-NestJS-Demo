@@ -1,0 +1,6 @@
+services:
+  planmanager:
+   path: managers/manager.plan/
+
+  planaccessor:
+   path: accessors/accessor.plan/

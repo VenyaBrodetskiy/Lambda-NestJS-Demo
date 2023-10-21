@@ -1,0 +1,57 @@
+service: planaccessor
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  iamRoleStatements:
+  - Effect: Allow
+    Action:
+      - lambda:InvokeFunction
+    Resource:
+      - arn:aws:lambda:us-east-1:*:function:*
+  - Effect: Allow
+    Action:
+      - sqs:*
+    Resource: "*"
+
+functions:
+  planaccessor:
+    handler: dist/main.handler
+    timeout: 30 # only for local 300
+    memorySize: 128
+    # API gateway ONLY for debug
+    events:
+      - httpApi: '*'
+      - sqs:
+          # queueName: 'plan-accessor-queue' # without name doesn't work
+          arn:
+            Fn::GetAtt:
+              - planaccessorQueue
+              - Arn
+
+resources:
+  Resources:
+    planaccessorQueue:
+      Type: "AWS::SQS::Queue"
+      Properties:
+        QueueName: "plan-accessor-queue"
+
+plugins:
+  - serverless-offline-sqs
+  - serverless-offline
+
+custom:
+  serverless-offline-sqs:
+    autoCreate: true                 # create queue if not exists
+    apiVersion: '2012-11-05'
+    endpoint: http://localstack:4566
+    region: us-east-1
+    accessKeyId: root
+    secretAccessKey: root
+    skipCacheInvalidation: false
+  serverless-offline:
+    host: '0.0.0.0'
+    httpPort: ${env:HTTP_PORT, '3001'}
+    lambdaPort: ${env:LAMBDA_PORT, '4001'}
+

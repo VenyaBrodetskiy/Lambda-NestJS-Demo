@@ -1,0 +1,12 @@
+{
+  "watch": [
+    "src/**/*.ts",
+    "src/**/*.yaml"
+  ],
+  "ext": "ts",
+  "ignore": [
+    "node_modules"
+  ],
+  "exec": "nest build && node --inspect=0.0.0.0 node_modules/serverless/bin/serverless offline",
+  "legacyWatch": true
+}

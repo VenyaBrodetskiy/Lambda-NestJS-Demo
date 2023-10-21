@@ -1,0 +1,43 @@
+{
+  "version": "0.2.0",
+  "compounds": [
+    {
+      "name": "Debug Backend",
+      "configurations": [
+        "Debug Manager.Plan",
+        "Debug Accessor.Plan",
+      ]
+    }
+  ],
+  "configurations": [
+    {
+      "type": "node",
+      "request": "attach",
+      "name": "Run backend",
+      "address": "localhost",
+      "preLaunchTask": "Start backend with docker-compose"
+    },
+    {
+      "type": "node",
+      "request": "attach",
+      "name": "Debug Manager.Plan",
+      "address": "localhost",
+      "port": 9229,
+      "localRoot": "${workspaceFolder}/managers/manager.plan",
+      "remoteRoot": "/app",
+      "protocol": "inspector",
+      "restart": true
+    },
+    {
+      "type": "node",
+      "request": "attach",
+      "name": "Debug Accessor.Plan",
+      "address": "localhost",
+      "port": 9230,
+      "localRoot": "${workspaceFolder}/accessors/accessor.plan",
+      "remoteRoot": "/app",
+      "protocol": "inspector",
+      "restart": true
+    }
+  ]
+}
