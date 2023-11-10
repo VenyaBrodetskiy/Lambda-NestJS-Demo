@@ -13,8 +13,8 @@ export class LambdaFactory {
 
   constructor(private config: Configuration) {}
 
-  public getLambda(accessor: Accessor): ILambdaClient {
-    const { name: functionName, endpoint: endpoint } = this.config.getAccessor(accessor);
+  public getLambda(service: string): ILambdaClient {
+    const { name: functionName, endpoint: endpoint } = this.config.getService(service);
 
     // for cloud
     if (!this.config.IsOffline) {

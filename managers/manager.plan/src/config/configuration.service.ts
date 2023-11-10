@@ -37,9 +37,9 @@ export class Configuration {
     }
   }
 
-  public getAccessor(accessor: Accessor): IAcccessorConfig {
+  public getService(service: string): IAcccessorConfig {
     try {
-      switch (accessor) {
+      switch (service) {
         case Accessor.Plan:
           return {
             name: this.configService.getOrThrow<string>('PLANACCESSOR_NAME'),
@@ -52,7 +52,7 @@ export class Configuration {
         //   };
         default:
           throw new Error(
-            `Unknown accessor type. Configuration.service misses accessor: ${accessor}`,
+            `Unknown accessor type. Configuration.service misses accessor: ${service}`,
           );
       }
     } catch (e) {
@@ -65,7 +65,7 @@ export class Configuration {
 
     // Validate accessor configurations
     for (const accessor of Object.values(Accessor)) {
-      this.getAccessor(accessor as Accessor);
+      this.getService(accessor as Accessor);
     }
 
     // Validate queue configuration not missed
